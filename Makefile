@@ -7,6 +7,7 @@ INC_DIR ?= ./inc
 SRCS := $(wildcard $(SRC_DIR)/*.c)
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
+LDFLAGS ?= -pthread
 
 FLAGS ?= -I$(INC_DIR) -Wall -Wextra -g -std=gnu99 
 

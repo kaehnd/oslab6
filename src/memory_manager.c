@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include "memory_manager.h"
 
-
-
 /* 
  * Using static causes the compiler to
  * limit visibility of the varibles to this file only
@@ -16,15 +14,19 @@ static int fragment_count = 0;
 
 static int free_space = 0;
 
+static int alocated_space = 0;
+
+static int meminit = 0;
+
 static struct memNode
 {
-	int free;
-	int size;
-	int* addr;
-	int* next;
+	int free;			  //boolean if free
+	int size;			  //size of space bytes
+	void *addr;			  //start address(as pointer)
+	struct memNode *next; //next block addreass(as pointer)
 };
 
-static struct memNode head;
+static struct memNode *head;
 
 /* mmInit()
  *     Initialize the memory manager to "manage" the given location
@@ -32,18 +34,22 @@ static struct memNode head;
  *         Parameters: start - the start of the memory to manage
  *                     size - the size of the memory to manage
  *         Returns: void
- */ 
-void mmInit(void* start, int size) 
+ */
+void mmInit(void *start, int size)
 {
+	head = malloc(sizeof(struct memNode));
+
 	allocation_count = 0;
 
-	head.size = size;
+	head->size = size;
 	free_space = size;
 
-	head.free = 1;
+	head->free = 1;
 
-	head.addr = start;
-	// TODO more initialization needed
+	head->addr = start;
+	head->next = NULL;
+
+	meminit = 1;
 }
 
 /* mmDestroy()
@@ -57,10 +63,15 @@ void mmInit(void* start, int size)
  *           and frees
  *         Parameters: None
  *         Returns: void
- */ 
+ */
 void mmDestroy()
 {
+	if (meminit != 1)
+	{
+		//error
+	}
 
+	//hehe mem go booooom
 }
 
 /* mymalloc_ff()
@@ -71,8 +82,32 @@ void mmDestroy()
  *         Parameters: nbytes - the number of bytes in the requested memory
  *         Returns: void* - a pointer to the start of the allocated space
  */
-void* mymalloc_ff(int nbytes)
+void *mymalloc_ff(int nbytes)
 {
+	if (meminit && free_space >= nbytes)
+	{
+		struct memNode *curNode = head;
+
+		while (curNode != NULL && !curNode->free && curNode->size < nbytes)
+		{
+			curNode = curNode->next;
+		}
+
+		if (curNode != NULL && curNode->free && curNode->size < nbytes)
+		{
+			struct memNode *next = curNode->next;
+			curNode->next = malloc(sizeof(struct memNode));
+			curNode->next->addr = curNode->addr + nbytes;
+			curNode->next->free = 1;
+			curNode->next->size = curNode->size - nbytes;
+			curNode->next->next = next;
+
+			curNode->size = nbytes;
+			curNode->free = 0;
+			return curNode->addr;
+		}
+	}
+
 	return NULL;
 }
 
@@ -84,8 +119,45 @@ void* mymalloc_ff(int nbytes)
  *         Parameters: nbytes - the number of bytes in the requested memory
  *         Returns: void* - a pointer to the start of the allocated space
  */
-void* mymalloc_wf(int nbytes)
+void *mymalloc_wf(int nbytes)
 {
+	if (meminit && free_space > nbytes)
+	{
+
+		struct memNode *curNode = head;
+
+		struct memNode *biggestNode = NULL;
+
+		while (curNode != NULL)
+		{
+
+			if (curNode->free && curNode->size > nbytes)
+			{
+
+				biggestNode = biggestNode == NULL || curNode->size > biggestNode->size ? curNode : biggestNode;
+			}
+			curNode = curNode->next;
+		}
+
+		if (biggestNode != NULL)
+		{
+			//save this for later
+			struct memNode *next = biggestNode->next;
+
+			//set up new free node
+			biggestNode->next = malloc(sizeof(struct memNode));
+			biggestNode->next->addr = biggestNode->addr + nbytes;
+			biggestNode->next->free = 1;
+			biggestNode->next->size = biggestNode->size - nbytes;
+			biggestNode->next->next = next;
+
+			//set up and return newly alloc'd node
+			biggestNode->size = nbytes;
+			biggestNode->free = 0;
+			return biggestNode->addr;
+		}
+	}
+
 	return NULL;
 }
 
@@ -97,9 +169,33 @@ void* mymalloc_wf(int nbytes)
  *         Parameters: nbytes - the number of bytes in the requested memory
  *         Returns: void* - a pointer to the start of the allocated space
  */
-void* mymalloc_bf(int nbytes)
+void *mymalloc_bf(int nbytes)
 {
-	return NULL;
+	if (meminit != 1 || free_space < nbytes)
+	{
+		//error
+		return NULL;
+	}
+
+	struct memNode *preptr, *best, *ptr;
+	preptr = head;
+	best = head;
+	int end = 1;
+	while ((preptr->size != nbytes) && (preptr->free != 1) && end)
+	{
+		//if the free space is perfect set alocation and end loop
+		if (preptr->size == nbytes && preptr->free)
+		{
+			preptr->free = 0;
+			end = 0;
+		} //if the pointer is a better fit than the current best point to that
+		else if ((preptr->size < best->size) && (preptr->size > nbytes) && (preptr->free)) 
+		{
+			best = preptr;
+		}
+	}
+
+	return preptr->addr;
 }
 
 /* myfree()
@@ -114,9 +210,12 @@ void* mymalloc_bf(int nbytes)
  *             - memory manager has been destroyed
  *             - ptr is not allocated (e.g. double free)
  */
-void myfree(void* ptr)
+void myfree(void *ptr)
 {
-
+	if (meminit != 1)
+	{
+		//error
+	}
 }
 
 /* get_allocated_space()
@@ -126,7 +225,7 @@ void myfree(void* ptr)
  */
 int get_allocated_space()
 {
-	return 0;
+	return alocated_space;
 }
 
 /* get_remaining_space()
@@ -137,7 +236,7 @@ int get_allocated_space()
  */
 int get_remaining_space()
 {
-	return 0;
+	return free_space;
 }
 
 /* get_fragment_count()
