@@ -68,8 +68,21 @@ void mmDestroy()
 {
 	if (meminit != 1)
 	{
-		//error
+		return;
 	}
+
+	struct memNode *curNode = head;
+	while (curNode != NULL)
+	{
+		struct memNode *next = curNode->next;
+
+		free(curNode);
+
+		curNode = next;
+	}
+	free_space = 0;
+	meminit = 0;
+	allocation_count = 0;
 
 	//hehe mem go booooom
 }
@@ -93,21 +106,32 @@ void *mymalloc_ff(int nbytes)
 			curNode = curNode->next;
 		}
 
-		if (curNode != NULL && curNode->free && curNode->size < nbytes)
+		if (curNode != NULL && curNode->free && curNode->size > nbytes)
 		{
+			//todo lock
+
+			//save this for later
 			struct memNode *next = curNode->next;
+
+			//setup new node
 			curNode->next = malloc(sizeof(struct memNode));
 			curNode->next->addr = curNode->addr + nbytes;
 			curNode->next->free = 1;
 			curNode->next->size = curNode->size - nbytes;
 			curNode->next->next = next;
 
+			//setup and return alloc'd node
 			curNode->size = nbytes;
 			curNode->free = 0;
+
+			free_space -= nbytes;
+			allocation_count++;
+
+			//todo unlock
+
 			return curNode->addr;
 		}
 	}
-
 	return NULL;
 }
 
@@ -123,17 +147,13 @@ void *mymalloc_wf(int nbytes)
 {
 	if (meminit && free_space > nbytes)
 	{
-
 		struct memNode *curNode = head;
-
 		struct memNode *biggestNode = NULL;
 
 		while (curNode != NULL)
 		{
-
 			if (curNode->free && curNode->size > nbytes)
 			{
-
 				biggestNode = biggestNode == NULL || curNode->size > biggestNode->size ? curNode : biggestNode;
 			}
 			curNode = curNode->next;
@@ -141,6 +161,8 @@ void *mymalloc_wf(int nbytes)
 
 		if (biggestNode != NULL)
 		{
+			//todo lock
+
 			//save this for later
 			struct memNode *next = biggestNode->next;
 
@@ -154,10 +176,14 @@ void *mymalloc_wf(int nbytes)
 			//set up and return newly alloc'd node
 			biggestNode->size = nbytes;
 			biggestNode->free = 0;
+
+			free_space -= nbytes;
+			allocation_count++;
+
+			//todo unlock
 			return biggestNode->addr;
 		}
 	}
-
 	return NULL;
 }
 
@@ -189,7 +215,7 @@ void *mymalloc_bf(int nbytes)
 			preptr->free = 0;
 			end = 0;
 		} //if the pointer is a better fit than the current best point to that
-		else if ((preptr->size < best->size) && (preptr->size > nbytes) && (preptr->free)) 
+		else if ((preptr->size < best->size) && (preptr->size > nbytes) && (preptr->free))
 		{
 			best = preptr;
 		}
