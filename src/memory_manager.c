@@ -1,5 +1,8 @@
+#include <sys/types.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "memory_manager.h"
 
 /* 
@@ -37,6 +40,10 @@ static struct memNode *head;
  */
 void mmInit(void *start, int size)
 {
+	//setup lock
+
+	//todo lock
+
 	head = malloc(sizeof(struct memNode));
 
 	allocation_count = 0;
@@ -50,6 +57,8 @@ void mmInit(void *start, int size)
 	head->next = NULL;
 
 	meminit = 1;
+
+	//todo unlock
 }
 
 /* mmDestroy()
@@ -70,6 +79,7 @@ void mmDestroy()
 	{
 		return;
 	}
+	//todo lock
 
 	struct memNode *curNode = head;
 	while (curNode != NULL)
@@ -84,7 +94,37 @@ void mmDestroy()
 	meminit = 0;
 	allocation_count = 0;
 
-	//hehe mem go booooom
+	//todo unlock
+
+	//todo destroy lock
+}
+
+static void *alloc_at_node(struct memNode *node, int nbytes)
+{
+	//todo lock
+
+	//setup new node if size not equal
+	if (node->size != nbytes)
+	{
+		struct memNode *next = node->next; //save for later
+
+		node->next = malloc(sizeof(struct memNode));
+		node->next->addr = node->addr + nbytes;
+		node->next->free = 1;
+		node->next->size = node->size - nbytes;
+		node->next->next = next;
+	}
+
+	//setup and return alloc'd node
+	node->size = nbytes;
+	node->free = 0;
+
+	free_space -= nbytes;
+	allocation_count++;
+
+	//todo unlock
+
+	return node->addr;
 }
 
 /* mymalloc_ff()
@@ -108,28 +148,7 @@ void *mymalloc_ff(int nbytes)
 
 		if (curNode != NULL && curNode->free && curNode->size > nbytes)
 		{
-			//todo lock
-
-			//save this for later
-			struct memNode *next = curNode->next;
-
-			//setup new node
-			curNode->next = malloc(sizeof(struct memNode));
-			curNode->next->addr = curNode->addr + nbytes;
-			curNode->next->free = 1;
-			curNode->next->size = curNode->size - nbytes;
-			curNode->next->next = next;
-
-			//setup and return alloc'd node
-			curNode->size = nbytes;
-			curNode->free = 0;
-
-			free_space -= nbytes;
-			allocation_count++;
-
-			//todo unlock
-
-			return curNode->addr;
+			return alloc_at_node(curNode, nbytes);
 		}
 	}
 	return NULL;
@@ -161,27 +180,7 @@ void *mymalloc_wf(int nbytes)
 
 		if (biggestNode != NULL)
 		{
-			//todo lock
-
-			//save this for later
-			struct memNode *next = biggestNode->next;
-
-			//set up new free node
-			biggestNode->next = malloc(sizeof(struct memNode));
-			biggestNode->next->addr = biggestNode->addr + nbytes;
-			biggestNode->next->free = 1;
-			biggestNode->next->size = biggestNode->size - nbytes;
-			biggestNode->next->next = next;
-
-			//set up and return newly alloc'd node
-			biggestNode->size = nbytes;
-			biggestNode->free = 0;
-
-			free_space -= nbytes;
-			allocation_count++;
-
-			//todo unlock
-			return biggestNode->addr;
+			return alloc_at_node(biggestNode, nbytes);
 		}
 	}
 	return NULL;
@@ -224,6 +223,16 @@ void *mymalloc_bf(int nbytes)
 	return preptr->addr;
 }
 
+	// static void memNode_coalesce(struct memNode * node1, struct memNode * node2)
+	// {
+
+	// 	node1->size += node2->size;
+	// 	node1->next = node2->next;
+	// 	free(node2);
+	// 	curNode = prevNode;
+		
+	// }
+
 /* myfree()
  *     Requests a block of memory be freed and the storage made
  *         available for future allocations
@@ -238,10 +247,47 @@ void *mymalloc_bf(int nbytes)
  */
 void myfree(void *ptr)
 {
-	if (meminit != 1)
+	if (meminit)
 	{
-		//error
+		struct memNode * prevNode = NULL;
+		struct memNode * curNode = head;
+
+		while(curNode!= NULL && curNode->addr != ptr)
+		{
+			prevNode = curNode;
+			curNode = curNode->next;
+		}
+
+		if (curNode != NULL && curNode->addr == ptr && !curNode->free)
+		{
+			//todo lock
+			//do free
+			curNode->free = 1;
+			free_space += curNode->size;
+			allocation_count--;
+
+			//coalesce memory
+			if (prevNode != NULL && prevNode->free)
+			{
+				prevNode->size += curNode->size;
+				prevNode->next = curNode->next;
+				free(curNode);
+				curNode = prevNode;
+			}
+
+			struct memNode * nextNode = curNode->next;
+			if (nextNode != NULL && nextNode->free)
+			{
+				curNode->size += nextNode->size;
+				curNode->next = nextNode->next;
+				free(nextNode);				
+			}
+			//todo unlock
+		}
 	}
+
+	//segfault
+	kill(getpid(), SIGSEGV);
 }
 
 /* get_allocated_space()
