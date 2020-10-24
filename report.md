@@ -7,7 +7,7 @@ Memory Manager
 
 ## Introduction
 
-todo
+This lab involved the creation of a memory manager, mimicing the `malloc` and `free` interface given by the Linux kernel. It was required to use a defined memory block allocated by a user and implement dynamic memory placement algorithms. 
 
 ## Design
 
@@ -15,7 +15,7 @@ todo
 
 ## Build Instructions
 
-todo
+The instructions `make` or `make all` can be used to build this solution. The command `./build/tester` will execute the general test driver, and `./build/experiment` will execute the experimental driver.
 
 ## Resources
 
@@ -23,7 +23,10 @@ todo
 
 ## Analysis
 
-1. todo
+1. todo James
+2. todo
+3. Todo
+4. Todo
 
 ## Conclusion
 
