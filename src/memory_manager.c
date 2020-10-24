@@ -175,14 +175,14 @@ void *mymalloc_ff(int nbytes)
  */
 void *mymalloc_wf(int nbytes)
 {
-	if (meminit && (total_space - allocated_space) > nbytes)
+	if (meminit && (total_space - allocated_space) >= nbytes)
 	{
 		struct memNode *curNode = head;
 		struct memNode *biggestNode = NULL;
 
 		while (curNode != NULL)
 		{
-			if (curNode->free && curNode->size > nbytes)
+			if (curNode->free && curNode->size >= nbytes)
 			{
 				biggestNode = biggestNode == NULL || curNode->size > biggestNode->size ? curNode : biggestNode;
 			}
