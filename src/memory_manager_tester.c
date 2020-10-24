@@ -49,6 +49,33 @@ void testFirstFit()
 
 void testWorstFit()
 {
+
+
+    testInit(100);
+
+    void * first = mymalloc_ff(50);
+    void * second = mymalloc_ff(20);
+    void * third = mymalloc_ff(30);
+
+    assertTrue(first != NULL && second != NULL && third != NULL);
+
+    myfree(first);
+    myfree(third);
+
+    //should have block of 50 free, block of 20 alloc'd, and block of 30 free
+
+
+    //using first fit, this will take first position
+    void * smol = mymalloc_ff(30);
+    assertTrue(smol != NULL);
+
+    //this should fail, since the space 
+    //of 50 free was taken by the smaller block
+    void * big = mymalloc_ff(50);
+    assertTrue(big == NULL);
+
+
+    testFinish();
 }
 
 void testBestFit()
