@@ -1,4 +1,5 @@
 #include <sys/types.h>
+#include <pthread.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,16 +13,15 @@
  */
 static int allocation_count = 0;
 
-/* TODO Define additional structure definitions here */
 static int fragment_count = 0;
 
-static int free_space = 0;
-
-static int alocated_space = 0;
+static int allocated_space = 0;
 
 static int meminit = 0;
 
-static struct memNode
+static int total_space = 0;
+
+struct memNode
 {
 	int free;			  //boolean if free
 	int size;			  //size of space bytes
@@ -30,6 +30,8 @@ static struct memNode
 };
 
 static struct memNode *head;
+
+static pthread_mutex_t memLock;
 
 /* mmInit()
  *     Initialize the memory manager to "manage" the given location
@@ -41,15 +43,18 @@ static struct memNode *head;
 void mmInit(void *start, int size)
 {
 	//setup lock
+	pthread_mutex_init(&memLock, NULL);
 
-	//todo lock
-
+	pthread_mutex_lock(&memLock);
+	//critical section
 	head = malloc(sizeof(struct memNode));
 
 	allocation_count = 0;
+	total_space = size;
 
 	head->size = size;
-	free_space = size;
+
+	fragment_count = 1;
 
 	head->free = 1;
 
@@ -58,7 +63,7 @@ void mmInit(void *start, int size)
 
 	meminit = 1;
 
-	//todo unlock
+	pthread_mutex_unlock(&memLock);
 }
 
 /* mmDestroy()
@@ -79,29 +84,31 @@ void mmDestroy()
 	{
 		return;
 	}
-	//todo lock
+
+	pthread_mutex_lock(&memLock);
 
 	struct memNode *curNode = head;
 	while (curNode != NULL)
 	{
+		//make buffer ponter to the next
 		struct memNode *next = curNode->next;
-
+		//free the current node
 		free(curNode);
-
+		//pont to the next node
 		curNode = next;
 	}
-	free_space = 0;
+	total_space = 0;
 	meminit = 0;
 	allocation_count = 0;
+	//unlock and destroy the mutex
+	pthread_mutex_unlock(&memLock);
 
-	//todo unlock
-
-	//todo destroy lock
+	pthread_mutex_destroy(&memLock);
 }
 
 static void *alloc_at_node(struct memNode *node, int nbytes)
 {
-	//todo lock
+	pthread_mutex_lock(&memLock);
 
 	//setup new node if size not equal
 	if (node->size != nbytes)
@@ -114,15 +121,19 @@ static void *alloc_at_node(struct memNode *node, int nbytes)
 		node->next->size = node->size - nbytes;
 		node->next->next = next;
 	}
+	else
+	{
+		fragment_count--;
+	}
 
 	//setup and return alloc'd node
 	node->size = nbytes;
 	node->free = 0;
 
-	free_space -= nbytes;
+	allocated_space += nbytes;
 	allocation_count++;
 
-	//todo unlock
+	pthread_mutex_unlock(&memLock);
 
 	return node->addr;
 }
@@ -137,7 +148,7 @@ static void *alloc_at_node(struct memNode *node, int nbytes)
  */
 void *mymalloc_ff(int nbytes)
 {
-	if (meminit && free_space >= nbytes)
+	if (meminit && (total_space - allocated_space) >= nbytes)
 	{
 		struct memNode *curNode = head;
 
@@ -164,7 +175,7 @@ void *mymalloc_ff(int nbytes)
  */
 void *mymalloc_wf(int nbytes)
 {
-	if (meminit && free_space > nbytes)
+	if (meminit && (total_space - allocated_space) > nbytes)
 	{
 		struct memNode *curNode = head;
 		struct memNode *biggestNode = NULL;
@@ -196,42 +207,46 @@ void *mymalloc_wf(int nbytes)
  */
 void *mymalloc_bf(int nbytes)
 {
-	if (meminit != 1 || free_space < nbytes)
+	if (meminit != 1 || (total_space - allocated_space) < nbytes)
 	{
 		//error
 		return NULL;
 	}
 
-	struct memNode *preptr, *best, *ptr;
-	preptr = head;
-	best = head;
-	int end = 1;
-	while ((preptr->size != nbytes) && (preptr->free != 1) && end)
+	struct memNode *best, *ptr, *buf;
+
+	ptr = head;
+
+	best = NULL;
+	buf = NULL;
+
+	int bestSize = (total_space - allocated_space); //for general largest possible node
+
+	while (best == NULL && ptr != NULL)
 	{
 		//if the free space is perfect set alocation and end loop
-		if (preptr->size == nbytes && preptr->free)
+		if (ptr->size == nbytes && ptr->free)
 		{
-			preptr->free = 0;
-			end = 0;
+			best = ptr;
 		} //if the pointer is a better fit than the current best point to that
-		else if ((preptr->size < best->size) && (preptr->size > nbytes) && (preptr->free))
+		else if ((ptr->size < bestSize) && (ptr->size > nbytes) && (ptr->free))
 		{
-			best = preptr;
+			//save location
+			buf = ptr;
+			//update size
+			bestSize = buf->size;
 		}
+		//if we reached the end and found no exact put it in the smallest free node
+		if (ptr->next == NULL && best == NULL)
+		{
+			best = buf;
+		}
+		ptr = ptr->next;
 	}
 
-	return preptr->addr;
+	//add node into structure
+	return best == NULL ? NULL : alloc_at_node(best, nbytes);
 }
-
-	// static void memNode_coalesce(struct memNode * node1, struct memNode * node2)
-	// {
-
-	// 	node1->size += node2->size;
-	// 	node1->next = node2->next;
-	// 	free(node2);
-	// 	curNode = prevNode;
-		
-	// }
 
 /* myfree()
  *     Requests a block of memory be freed and the storage made
@@ -247,24 +262,24 @@ void *mymalloc_bf(int nbytes)
  */
 void myfree(void *ptr)
 {
-	if (meminit)
+	if (meminit) //if its initialized
 	{
-		struct memNode * prevNode = NULL;
-		struct memNode * curNode = head;
-
-		while(curNode!= NULL && curNode->addr != ptr)
+		struct memNode *prevNode = NULL;
+		struct memNode *curNode = head;
+		//find node
+		while (curNode != NULL && curNode->addr != ptr)
 		{
 			prevNode = curNode;
 			curNode = curNode->next;
 		}
-
+		//if node found, addr is right, and its not already free
 		if (curNode != NULL && curNode->addr == ptr && !curNode->free)
 		{
-			//todo lock
+			pthread_mutex_lock(&memLock);
 			//do free
 			curNode->free = 1;
-			free_space += curNode->size;
-			allocation_count--;
+			allocated_space -= curNode->size;
+			fragment_count++;
 
 			//coalesce memory
 			if (prevNode != NULL && prevNode->free)
@@ -273,16 +288,19 @@ void myfree(void *ptr)
 				prevNode->next = curNode->next;
 				free(curNode);
 				curNode = prevNode;
+				fragment_count--;
 			}
 
-			struct memNode * nextNode = curNode->next;
+			struct memNode *nextNode = curNode->next;
 			if (nextNode != NULL && nextNode->free)
 			{
 				curNode->size += nextNode->size;
 				curNode->next = nextNode->next;
-				free(nextNode);				
+				free(nextNode);
+				fragment_count--;
 			}
-			//todo unlock
+			pthread_mutex_unlock(&memLock);
+			return;
 		}
 	}
 
@@ -297,7 +315,7 @@ void myfree(void *ptr)
  */
 int get_allocated_space()
 {
-	return alocated_space;
+	return allocated_space;
 }
 
 /* get_remaining_space()
@@ -308,7 +326,7 @@ int get_allocated_space()
  */
 int get_remaining_space()
 {
-	return free_space;
+	return total_space - allocated_space;
 }
 
 /* get_fragment_count()

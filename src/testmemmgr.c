@@ -7,7 +7,7 @@
 
 #define MY_HEAP_SIZE 100
 
-int main()
+int main2()
 {
 	char my_heap[MY_HEAP_SIZE];
 	mmInit(my_heap, MY_HEAP_SIZE);
@@ -40,7 +40,7 @@ int main()
 	
 	// Attempt to allocate 50 bytes
 	//   should fail
-	char* ptr3 = mymalloc_bf(50);
+	char* ptr3 = mymalloc_bf(46);
 	if(ptr3 == NULL) {
 		printf("ptr3 - mymalloc_bf(50) failed\n");
 	}
@@ -54,7 +54,7 @@ int main()
 	printf("Total successful mallocs: %d\n", get_mymalloc_count());
 	
 	// Double free, should cause a segmentation fault
-	myfree(ptr2);
+	//myfree(ptr2);
 	
 	mmDestroy();
 	

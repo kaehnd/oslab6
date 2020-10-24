@@ -29,7 +29,7 @@ void* thread_routine(void* args)
 	return NULL;
 }
 
-int main2()
+int main()
 {
 	pthread_t mythreads[THREAD_COUNT];
 
