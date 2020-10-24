@@ -51,10 +51,10 @@ void mmInit(void *start, int size)
 
 	allocation_count = 0;
 	total_space = size;
+	allocated_space = 0;
+	fragment_count = 1;
 
 	head->size = size;
-
-	fragment_count = 1;
 
 	head->free = 1;
 
@@ -152,12 +152,12 @@ void *mymalloc_ff(int nbytes)
 	{
 		struct memNode *curNode = head;
 
-		while (curNode != NULL && !curNode->free && curNode->size < nbytes)
+		while (curNode != NULL && (!curNode->free || curNode->size < nbytes))
 		{
 			curNode = curNode->next;
 		}
 
-		if (curNode != NULL && curNode->free && curNode->size > nbytes)
+		if (curNode != NULL && curNode->free && curNode->size >= nbytes)
 		{
 			return alloc_at_node(curNode, nbytes);
 		}
@@ -229,7 +229,7 @@ void *mymalloc_bf(int nbytes)
 		{
 			best = ptr;
 		} //if the pointer is a better fit than the current best point to that
-		else if ((ptr->size < bestSize) && (ptr->size > nbytes) && (ptr->free))
+		else if ((ptr->size <= bestSize) && (ptr->size > nbytes) && (ptr->free))
 		{
 			//save location
 			buf = ptr;

@@ -1,5 +1,8 @@
 #include "testHelper.h"
 #include "memory_manager.h"
+#include <stddef.h>
+#include <stdlib.h>
+
 
 static void *heap;
 
@@ -12,9 +15,10 @@ static void testInit(int size)
 static void testFinish()
 {
     mmDestroy();
+    free(heap);
 }
 
-testFirstFit()
+void testFirstFit()
 {
     testInit(100);
 
@@ -22,7 +26,7 @@ testFirstFit()
     void * second = mymalloc_ff(20);
     void * third = mymalloc_ff(30);
 
-    assertTrue(first != NULL & second != NULL && third != NULL);
+    assertTrue(first != NULL && second != NULL && third != NULL);
 
     myfree(first);
     myfree(third);
@@ -43,11 +47,11 @@ testFirstFit()
     testFinish();
 }
 
-testWorstFit()
+void testWorstFit()
 {
 }
 
-testBestFit()
+void testBestFit()
 {
     testInit(100);
 
@@ -55,7 +59,7 @@ testBestFit()
     void * second = mymalloc_bf(20);
     void * third = mymalloc_bf(30);
 
-    assertTrue(first != NULL & second != NULL && third != NULL);
+    assertTrue(first != NULL && second != NULL && third != NULL);
 
     myfree(first);
     myfree(third);
@@ -76,7 +80,7 @@ testBestFit()
     testFinish();
 }
 
-testMetricsFunctions()
+void testMetricsFunctions()
 {
 }
 
@@ -87,7 +91,7 @@ static void single_thread_tests()
 {
     startTests("memory_manager.c single-threaded");
 
-    testWorstFit();
+    testFirstFit();
     testBestFit();
 
     finishTests();
@@ -96,5 +100,5 @@ static void single_thread_tests()
 int main(int argc, char * argv[])
 {
     single_thread_tests();
-    
-})
+    return 0;
+}
