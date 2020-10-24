@@ -442,14 +442,13 @@ int main()
 //##########################################################################################################################################################
     //double memory size for round two of testing
     MOD = MOD*2;
-    free(ptr1);
 
-	char* ptr1[] = malloc((sizeof(char*) * (MY_HEAP_SIZE/MOD)));
+	char* ptr2[MY_HEAP_SIZE/MOD];
 
     // attempt one at making as many fragments as possible w/ff
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
     {
-        ptr1[i] = mymalloc_ff(MOD);
+        ptr2[i] = mymalloc_ff(MOD);
     }
     //free every other byte
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
@@ -473,7 +472,7 @@ int main()
 	// attempt one at making as many fragments as possible w/bf
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
     {
-        ptr1[i] = mymalloc_bf(MOD);
+        ptr2[i] = mymalloc_bf(MOD);
     }
     //free every other byte
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
@@ -497,7 +496,7 @@ int main()
 	// attempt one at making as many fragments as possible w/wf
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
     {
-        ptr1[i] = mymalloc_wf(MOD);
+        ptr2[i] = mymalloc_wf(MOD);
     }
     //free every other byte
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
@@ -521,10 +520,10 @@ int main()
     // attempt one at making as many fragments as possible w/ ff & bf
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
     {
-        ptr1[i] = mymalloc_ff(MOD);
+        ptr2[i] = mymalloc_ff(MOD);
         if(i != 0) 
         {
-            ptr1[--i] = mymalloc_bf(MOD);
+            ptr2[--i] = mymalloc_bf(MOD);
         }
     }
     //free every other byte alocated
@@ -549,10 +548,10 @@ int main()
     // attempt one at making as many fragments as possible w/ bf & ff
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
     {
-        ptr1[i] = mymalloc_bf(MOD);
+        ptr2[i] = mymalloc_bf(MOD);
         if(i != 0) 
         {
-            ptr1[--i] = mymalloc_ff(MOD);
+            ptr2[--i] = mymalloc_ff(MOD);
         }
     }
     //free every other byte alocated
@@ -577,10 +576,10 @@ int main()
     // attempt one at making as many fragments as possible w/ ff & wf
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
     {
-        ptr1[i] = mymalloc_ff(MOD);
+        ptr2[i] = mymalloc_ff(MOD);
         if(i != 0) 
         {
-            ptr1[--i] = mymalloc_wf(MOD);
+            ptr2[--i] = mymalloc_wf(MOD);
         }
     }
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
@@ -604,10 +603,10 @@ int main()
     // attempt one at making as many fragments as possible w/ wf & ff
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
     {
-        ptr1[i] = mymalloc_wf(MOD);
+        ptr2[i] = mymalloc_wf(MOD);
         if(i != 0) 
         {
-            ptr1[--i] = mymalloc_ff(MOD);
+            ptr2[--i] = mymalloc_ff(MOD);
         }
     }
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
@@ -631,10 +630,10 @@ int main()
     // attempt one at making as many fragments as possible w/ bf & wf
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
     {
-        ptr1[i] = mymalloc_bf(MOD);
+        ptr2[i] = mymalloc_bf(MOD);
         if(i != 0) 
         {
-            ptr1[--i] = mymalloc_wf(MOD);
+            ptr2[--i] = mymalloc_wf(MOD);
         }
     }
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
@@ -658,10 +657,10 @@ int main()
     // attempt one at making as many fragments as possible w/ wf & bf
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
     {
-        ptr1[i] = mymalloc_wf(MOD);
+        ptr2[i] = mymalloc_wf(MOD);
         if(i != 0) 
         {
-            ptr1[--i] = mymalloc_bf(MOD);
+            ptr2[--i] = mymalloc_bf(MOD);
         }
     }
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
@@ -685,14 +684,14 @@ int main()
     // attempt one at making as many fragments as possible w/ ff, bf, wf
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
     {
-        ptr1[i] = mymalloc_ff(MOD);
+        ptr2[i] = mymalloc_ff(MOD);
         if(i != 0) 
         {
-            ptr1[--i] = mymalloc_bf(MOD);
+            ptr2[--i] = mymalloc_bf(MOD);
         }
         if(i != 0) 
         {
-            ptr1[--i] = mymalloc_wf(MOD);
+            ptr2[--i] = mymalloc_wf(MOD);
         }
     }
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
@@ -716,14 +715,14 @@ int main()
     // attempt one at making as many fragments as possible w/ ff, wf, bf
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
     {
-        ptr1[i] = mymalloc_ff(MOD);
+        ptr2[i] = mymalloc_ff(MOD);
         if(i != 0) 
         {
-            ptr1[--i] = mymalloc_wf(MOD);
+            ptr2[--i] = mymalloc_wf(MOD);
         }
         if(i != 0) 
         {
-            ptr1[--i] = mymalloc_bf(MOD);
+            ptr2[--i] = mymalloc_bf(MOD);
         }
     }
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
@@ -747,14 +746,14 @@ int main()
     // attempt one at making as many fragments as possible w/ bf, ff, wf
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
     {
-        ptr1[i] = mymalloc_bf(MOD);
+        ptr2[i] = mymalloc_bf(MOD);
         if(i != 0) 
         {
-            ptr1[--i] = mymalloc_ff(MOD);
+            ptr2[--i] = mymalloc_ff(MOD);
         }
         if(i != 0) 
         {
-            ptr1[--i] = mymalloc_wf(MOD);
+            ptr2[--i] = mymalloc_wf(MOD);
         }
     }
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
@@ -778,14 +777,14 @@ int main()
     // attempt one at making as many fragments as possible w/ bf, wf, ff
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
     {
-        ptr1[i] = mymalloc_bf(MOD);
+        ptr2[i] = mymalloc_bf(MOD);
         if(i != 0) 
         {
-            ptr1[--i] = mymalloc_wf(MOD);
+            ptr2[--i] = mymalloc_wf(MOD);
         }
         if(i != 0) 
         {
-            ptr1[--i] = mymalloc_ff(MOD);
+            ptr2[--i] = mymalloc_ff(MOD);
         }
     }
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
@@ -809,14 +808,14 @@ int main()
     // attempt one at making as many fragments as possible w/ wf, ff, bf
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
     {
-        ptr1[i] = mymalloc_wf(MOD);
+        ptr2[i] = mymalloc_wf(MOD);
         if(i != 0) 
         {
-            ptr1[--i] = mymalloc_ff(MOD);
+            ptr2[--i] = mymalloc_ff(MOD);
         }
         if(i != 0) 
         {
-            ptr1[--i] = mymalloc_bf(MOD);
+            ptr2[--i] = mymalloc_bf(MOD);
         }
     }
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
@@ -840,14 +839,14 @@ int main()
     // attempt one at making as many fragments as possible w/ wf, bf, ff
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
     {
-        ptr1[i] = mymalloc_wf(MOD);
+        ptr2[i] = mymalloc_wf(MOD);
         if(i != 0) 
         {
-            ptr1[--i] = mymalloc_bf(MOD);
+            ptr2[--i] = mymalloc_bf(MOD);
         }
         if(i != 0) 
         {
-            ptr1[--i] = mymalloc_ff(MOD);
+            ptr2[--i] = mymalloc_ff(MOD);
         }
     }
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
@@ -867,7 +866,6 @@ int main()
         }
     }
 
-    free(ptr1);
 	mmDestroy();
 	
 	return 0;
