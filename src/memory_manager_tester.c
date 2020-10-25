@@ -1,3 +1,11 @@
+/* 
+ * memory_manager_tester.c
+ *
+ * James Rector and Daniel Kaehn
+ * CS 3841 Lab 6: Memory Manager
+ * 10/25/2020
+ */
+
 #include "testHelper.h"
 #include "memory_manager.h"
 #include <stddef.h>
