@@ -1,14 +1,10 @@
-/**
- * Danny Kaehn
- * CS 3841-011
- * Lab 2: Stack Machine
- * 
- * testHelper.h: declarations of some useful methods for creating assertions
- * with helpful error messages pointing to the source; uses macros to
- * add file, function, and line number of of source call
- * 
- ***Can only have one test session active at a time
- * (done to prevent passing a test session struct around all the time)
+/* 
+ * testHelper.h
+ *
+ * James Rector and Daniel Kaehn
+ * CS 3841 Lab 6: Memory Manager
+ * 10/25/2020
+ */
  */
 
 #ifndef TESTHELPER
