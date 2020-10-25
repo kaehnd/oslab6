@@ -1,3 +1,11 @@
+/* 
+ * memory_experiment.c
+ *
+ * James Rector and Daniel Kaehn
+ * CS 3841 Lab 6: Memory Manager
+ * 10/25/2020
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
