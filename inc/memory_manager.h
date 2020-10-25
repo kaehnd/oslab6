@@ -2,7 +2,11 @@
 #define MEMORY_MANAGER_H
 
 /* memory_manager.h 
- * 
+ *
+ * James Rector and Daniel Kaehn
+ * CS 3841 Lab 6: Memory Manager
+ * 10/25/2020
+ *
  * External (public) declarations for a memory manager in c.
  * 
  * Clients begin by initializing the memeory manager.  They can
