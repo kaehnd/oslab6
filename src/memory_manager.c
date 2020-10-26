@@ -1,3 +1,11 @@
+/* 
+ * memory_manager.c
+ *
+ * James Rector and Daniel Kaehn
+ * CS 3841 Lab 6: Memory Manager
+ * 10/25/2020
+ */
+
 #include <sys/types.h>
 #include <pthread.h>
 #include <signal.h>
@@ -106,6 +114,13 @@ void mmDestroy()
 	pthread_mutex_destroy(&memLock);
 }
 
+/* alloc_at_node()
+ *     Helper method that allocates the given node with the provided number of bytes
+ *     Requires that the given node is big enough to fit the desired byte count
+ *         Parameters: struct memNode *node - the node from which to allocate
+ *                   nbytes - the number of bytes in the requested memory
+ *         Returns: void* - a pointer to the start of the allocated space
+ */
 static void *alloc_at_node(struct memNode *node, int nbytes)
 {
 	pthread_mutex_lock(&memLock);

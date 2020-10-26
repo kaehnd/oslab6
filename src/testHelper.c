@@ -1,12 +1,10 @@
-/**
- * Danny Kaehn
- * CS 3841-011
- * Lab 2: Stack Machine
- * 
- * testHelper.c: some useful methods for creating assertions
- *  with helpful error messages pointing to the source
+/* 
+ * testHelper.c
+ *
+ * James Rector and Daniel Kaehn
+ * CS 3841 Lab 6: Memory Manager
+ * 10/25/2020
  */
-
 
 #include <stdlib.h>
 #include <stdio.h>
