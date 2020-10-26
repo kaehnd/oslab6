@@ -111,6 +111,8 @@ int main()
     free_all_bytes(ptr1);
 
 /*
+here lies the rest of the experimental file where rector forgot many things but concluded that we only need the non commented out code
+
     // attempt one at making as many fragments as possible w/ ff & bf
     for(int i = (MY_HEAP_SIZE/MOD)-1; i >= 0; i--)
     {
