@@ -215,6 +215,8 @@ static void testBigMemory()
     assertEqual(100000, get_remaining_space());
 
     free(locations);
+
+    testFinish();
 }
 
 
@@ -260,6 +262,7 @@ static void testMultithreaded()
     assertEqual(1000, get_remaining_space());
     assertEqual(1000, get_mymalloc_count());
 
+    testFinish();
 }
 
 int main()
